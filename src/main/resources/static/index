@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hackathon Pro | Nexus</title>
+
+    <style>
+        /* ===== YOUR ORIGINAL CSS (UNCHANGED) ===== */
+        :root {
+            --primary: #3b82f6;
+            --accent: #8b5cf6;
+            --bg: #020617;
+            --card: #0f172a;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: white;
+            overflow: hidden;
+        }
+
+        .page-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            height: 100vh;
+        }
+
+        .visual-side {
+            background: linear-gradient(135deg, #1e1b4b 0%, #020617 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 10%;
+        }
+
+        .logo-text {
+            font-size: 3.5rem;
+            font-weight: 900;
+        }
+
+        .form-side {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .form-card {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .step { display: none; }
+        .step.active { display: block; }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 6px 0;
+            border-radius: 10px;
+            border: none;
+            background: #0f172a;
+            color: white;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-next { background: var(--primary); color: white; }
+        .btn-back { background: #334155; color: white; }
+
+        /* ===== LOADER ===== */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .progress-fill {
+            height: 5px;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+
+        /* ===== OTP POPUP ===== */
+        #otpOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .otp-box {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 12px;
+            width: 300px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="page-wrapper">
+
+    <div class="visual-side">
+        <h1 class="logo-text">Forge the<br>New Reality.</h1>
+    </div>
+
+    <div class="form-side">
+        <div class="form-card">
+
+            <!-- STEP 1 -->
+            <div class="step active" id="step1">
+                <input id="teamName" placeholder="Team Name">
+                <input id="college" placeholder="College">
+                <input id="domain" placeholder="Domain">
+                <button class="btn-next" onclick="nextStep(2)">Next</button>
+            </div>
+
+            <!-- STEP 2 -->
+            <div class="step" id="step2">
+                <input id="leadName" placeholder="Lead Name">
+                <input id="email" placeholder="Email">
+                <input id="phone" placeholder="Phone">
+                <button class="btn-back" onclick="nextStep(1)">Back</button>
+                <button class="btn-next" onclick="nextStep(3)">Next</button>
+            </div>
+
+            <!-- STEP 3 -->
+            <div class="step" id="step3">
+                <input id="m1" placeholder="Member 2">
+                <input id="m2" placeholder="Member 3">
+                <input id="m3" placeholder="Member 4">
+                <button class="btn-back" onclick="nextStep(2)">Back</button>
+                <button class="btn-next" onclick="startFinalize()">Register</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- LOADER -->
+<div class="loading-overlay" id="globalLoader">
+    <h2>Processing...</h2>
+    <div style="width:200px;background:#111;margin-top:10px;">
+        <div class="progress-fill" id="mainBar"></div>
+    </div>
+</div>
+
+<!-- OTP POPUP -->
+<div id="otpOverlay">
+    <div class="otp-box">
+        <h3>Enter OTP</h3>
+        <input id="otpInput" placeholder="Enter OTP">
+        <button onclick="verifyOtp()">Verify</button>
+        <button onclick="resendOtp()">Resend OTP</button>
+    </div>
+</div>
+
+<script>
+
+    function nextStep(step) {
+        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+        document.getElementById('step'+step).classList.add('active');
+    }
+
+    let formData = {};
+
+    function startFinalize() {
+        document.getElementById('globalLoader').style.display = 'flex';
+
+        setTimeout(sendData, 1500);
+    }
+
+    function sendData() {
+
+        formData = {
+            teamName: document.getElementById("teamName").value,
+            college: document.getElementById("college").value,
+            domain: document.getElementById("domain").value,
+            leadName: document.getElementById("leadName").value,
+            email: document.getElementById("email").value,
+            phone: document.getElementById("phone").value,
+            members: [
+                document.getElementById("m1").value,
+                document.getElementById("m2").value,
+                document.getElementById("m3").value
+            ]
+        };
+
+        fetch("http://localhost:8080/api/otp/send", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                email: formData.email,
+                registrationData: formData
+            })
+        })
+        .then(res => res.text())
+        .then(data => {
+            alert(data);
+            document.getElementById('globalLoader').style.display = 'none';
+            document.getElementById('otpOverlay').style.display = 'flex';
+        });
+    }
+
+    function verifyOtp() {
+
+        const otp = document.getElementById("otpInput").value;
+
+        fetch("http://localhost:8080/api/otp/verify", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                email: formData.email,
+                otp: otp
+            })
+        })
+        .then(res => res.text())
+        .then(data => {
+            alert(data);
+            if (data.includes("Successfully")) {
+                document.getElementById("otpOverlay").style.display = "none";
+            }
+        });
+    }
+
+    function resendOtp() {
+
+        fetch("http://localhost:8080/api/otp/send", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                email: formData.email,
+                registrationData: formData
+            })
+        })
+        .then(res => res.text())
+        .then(data => alert(data));
+    }
+
+</script>
+
+</body>
+</html>
