@@ -207,7 +207,7 @@
             ]
         };
 
-        fetch("http://localhost:8080/api/otp/send", {
+        fetch("https://hacksmdc.onrender.com/api/otp/send", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
@@ -227,7 +227,7 @@
 
         const otp = document.getElementById("otpInput").value;
 
-        fetch("http://localhost:8080/api/otp/verify", {
+        fetch("https://hacksmdc.onrender.com/api/otp/verify", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
@@ -246,7 +246,7 @@
 
     function resendOtp() {
 
-        fetch("http://localhost:8080/api/otp/send", {
+        fetch("https://hacksmdc.onrender.com/api/otp/send", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
