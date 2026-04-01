@@ -1,17 +1,11 @@
-# Use Java 17
-FROM openjdk:17-jdk-slim
-
-# Set working directory
+# Build stage
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
-
-# Copy project files
 COPY . .
+RUN mvn clean package -DskipTests
 
-# Build the project
-RUN ./mvnw clean package -DskipTests
-
-# Expose port (Render will override with PORT env)
-EXPOSE 8080
-
-# Run the jar
-CMD ["java", "-jar", "target/*.jar"]
+# Run stage
+FROM eclipse-temurin:17-jdk
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
+CMD ["java", "-jar", "app.jar"]
