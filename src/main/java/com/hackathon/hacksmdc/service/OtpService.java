@@ -84,6 +84,17 @@ public class OtpService {
         // 🔥 REGISTER TEAM
         String response = registrationService.registerTeam(data);
 
+        // ❌ If registration failed → stop here
+        if (!response.contains("Team ID: ")) {
+            return response;
+        }
+
+        // 🔥 Extract Team ID
+        String teamId = response.split("Team ID: ")[1];
+
+        // 📧 Send confirmation mail
+        emailService.sendRegistrationSuccessEmail(email, teamId, data);
+
         // 🧹 CLEANUP
         tempStorage.remove(email);
         otpRepo.delete(otpEntity);
